@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* ==========================================================================
+   COLOR PALETTE — single source of truth.
+
+   Every color in the app reads from these variables (see tailwind.config.js,
+   which maps each one straight through). To try a different look: comment
+   out the ACTIVE block and uncomment a PRESET below it (or write your own
+   using the same variable names) — no component code needs to change.
+
+   Values are space-separated R G B components (0-255), NOT hex — this is
+   what lets Tailwind's opacity modifiers (bg-accent/10, border-danger/50,
+   etc.) work correctly against a CSS variable.
+   ========================================================================== */
+
+:root {
+  /* --- ACTIVE: Amber/Gold --- */
+  /* --color-bg: 28 18 0;               #1c1200 */
+  /* --color-surface: 65 42 0;          #412a00 */
+  /* --color-surface-raised: 92 60 3;   #5c3c03 */
+  /* --color-border: 125 89 0;          #7d5900 */
+  /* --color-text: 247 240 220;         #f7f0dc */
+  /* --color-text-muted: 201 180 124;   #c9b47c */
+  /* --color-accent: 230 206 96;        #e6ce60 — active/positive state */
+  /* --color-accent-strong: 181 145 0;  #b59100 — hover/pressed */
+  /* --color-locked: 61 76 92; */         /* #3d4c5c — cool, deliberately NOT */
+                                         /* from the warm family, so "locked" */
+                                         /* reads as visually "off" */ 
+  /* --color-past: 107 99 88;           /* #6b6358 — grayed out, warm-neutral */
+                                         /* so it doesn't clash with the rest */ 
+  /* --color-success: 127 174 92;       #7fae5c — muted, not a jarring green */
+  /* --color-danger: 193 88 79;         #c1584f — muted terracotta-red */
+}
+
+ /* --- PRESET: Cool Slate — uncomment to try (and comment out ACTIVE above) */
+:root {
+  --color-bg: 15 20 26;
+  --color-surface: 27 33 43;
+  --color-surface-raised: 34 42 54;
+  --color-border: 42 50 63;
+  --color-text: 231 234 238;
+  --color-text-muted: 136 146 160;
+  --color-accent: 79 176 168;
+  --color-accent-strong: 60 140 133;
+  --color-locked: 90 82 110;
+  --color-past: 90 98 110;
+  --color-success: 95 191 119;
+  --color-danger: 224 102 92;
+}
+
+
+/* --- PRESET: Forest — uncomment to try (and comment out ACTIVE above)
+:root {
+  --color-bg: 15 22 17;
+  --color-surface: 26 37 29;
+  --color-surface-raised: 34 48 38;
+  --color-border: 45 63 50;
+  --color-text: 232 238 231;
+  --color-text-muted: 150 166 152;
+  --color-accent: 141 199 108;
+  --color-accent-strong: 104 158 74;
+  --color-locked: 61 76 92;
+  --color-past: 107 111 99;
+  --color-success: 141 199 108;
+  --color-danger: 201 100 90;
+}
+*/
+
+body {
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-text));
+}
+
+/* Visible keyboard focus everywhere — not optional */
+:focus-visible {
+  outline: 2px solid rgb(var(--color-accent));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

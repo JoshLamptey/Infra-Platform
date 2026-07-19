@@ -1,0 +1,42 @@
+{
+  "slug": "module-01-quiz",
+  "moduleSlug": "module-01-containers",
+  "title": "Module 1 Quiz — Containers & the app image",
+  "questions": [
+    {
+      "id": "m1q1",
+      "type": "open",
+      "prompt": "If someone edited apps/common/views.py and rebuilt this image, which stages would need to re-run their layers, and which would hit cache? Walk through it stage by stage.",
+      "rubric": "Should identify that builder/builder-dev wheel-building stages are cache-hit (unaffected by app code changes since they only depend on requirements files), while runtime's COPY . . layer and everything after it in that stage must re-run because the app source changed. Full credit requires naming the specific COPY that invalidates and explaining why requirements-only stages are unaffected.",
+      "maxScore": 10
+    },
+    {
+      "id": "m1q2",
+      "type": "open",
+      "prompt": "A teammate 'simplifies' the Dockerfile by deleting the builder stage and running apt-get install gcc ... && pip install -r requirements/prod.txt directly in a single stage. Name two concrete costs: one about image size/attack surface, one about build speed on repeated builds.",
+      "rubric": "Attack surface: compiler toolchain (gcc etc.) now ships in the production image, larger attack surface if the container is compromised. Build speed: without the two-stage split, any app code change forces re-running the full apt-get + pip install + compile step since there's no separate cacheable dependency layer isolated from source copies.",
+      "maxScore": 10
+    },
+    {
+      "id": "m1q3",
+      "type": "open",
+      "prompt": "The runtime stage does COPY . . after installing dependencies from wheels. Why is that order correct given layer caching? What would break/slow down if flipped?",
+      "rubric": "Correct order keeps the expensive dependency install layer cached across source-only changes. Flipping it means COPY . . (which changes on every commit) would sit before the pip install layer, invalidating the dependency install cache on every single code change — every build reinstalls all dependencies from scratch.",
+      "maxScore": 10
+    },
+    {
+      "id": "m1q4",
+      "type": "open",
+      "prompt": "The development stage temporarily switches to USER root, installs dev wheels, then switches back to USER appuser. Why can't it stay as appuser for the whole stage?",
+      "rubric": "appuser lacks filesystem permissions to install packages into system site-packages / write to protected paths; pip install would fail with a permissions error without root.",
+      "maxScore": 10
+    },
+    {
+      "id": "m1q5",
+      "type": "open",
+      "prompt": "The production stage's CMD is /start-api.sh, but the same image also runs the Celery worker and beat. How does that actually happen, given the image only has one CMD?",
+      "rubric": "Compose services override the image's default CMD per-service via the `command:` key (e.g. [\"/start-worker.sh\"], [\"/start-beat.sh\"]) — the image itself is generic; the specific process it runs is decided at container-start time by Compose, not baked into the image.",
+      "maxScore": 10
+    }
+  ]
+}
