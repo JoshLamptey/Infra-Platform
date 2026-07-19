@@ -53,7 +53,9 @@ Changes from the original plan:
 
 ## Content → database flow
 
-Content is authored as files in git (`content/modules/*.md`, `content/quizzes/*.json`), not directly in Supabase. `scripts/seed-content.js` reads those files and upserts them into Supabase. This runs:
+Content is authored as files in git (`content/modules/*.md`, `content/quizzes/*.json`), not directly in Supabase. `content/curriculum.json` is the master roadmap — every planned week is listed there (slug, title, order, scheduled date, status) regardless of whether its content has been written yet. This is what makes future weeks show up as locked placeholders instead of being invisible: the seed script creates a `modules`/`sessions` row for every entry in the manifest, and only layers in `quizzes`/`questions` where a matching content file actually exists. Once `content/modules/<slug>.md` exists, its frontmatter (`title`/`order`) overrides the manifest's placeholder values for that module.
+
+`scripts/seed-content.js` runs:
 
 - Manually: `npm run seed` (reads `.env.local`)
 - Automatically: as a gated job in `.github/workflows/ci.yml`, only on push to `main`, only after lint and build both pass
@@ -70,14 +72,20 @@ This is the actual mechanism behind "push updates the week's material" — there
 
 ## What's seeded today
 
-Only `module-01-containers` has content (`.md` + quiz `.json`). The
-`SCHEDULE` map in `scripts/seed-content.js` already lists all 9 planned
-modules with their dates — modules 2–9 activate automatically the moment
-their content files are added, no code changes needed.
+`content/curriculum.json` lists all 9 planned modules — all 9 now get a
+`modules`/`sessions` row (and therefore a pipeline card) on every seed
+run. Only `module-01-containers` has actual written content and a quiz;
+weeks 2–9 render as locked placeholders using the manifest's title until
+their content files are added.
 
 ## Post-launch backlog
 
 - **Make learning content more immersive** (requested, deliberately deferred). Current module pages are plain rendered markdown. Explicitly agreed this is the first post-production push, not a pre-launch blocker — revisit once the app is live and stable.
+
+## Resolved issues (kept here as a record, not because they're still open)
+
+- **CI seed job failing on Node 20** (`Error: Node.js detected but native WebSocket not found`). `@supabase/supabase-js` initializes a Realtime client on construction even though this app never uses Realtime, and that client requires native `WebSocket` support, which Node only has from v22 onward. Fixed by bumping `node-version` to `"22"` in all three CI jobs and adding `"engines": { "node": ">=22" }` to `package.json` so local/CI/Vercel can't silently drift apart on this again.
+- **Future weeks not appearing in the pipeline at all.** The seed script used to only create a `modules` row for slugs that already had a `content/modules/*.md` file — so unwritten weeks didn't exist in Supabase, not even as locked placeholders. Fixed by introducing `content/curriculum.json` as the master roadmap (see "Content → database flow" above); every listed week now gets seeded regardless of whether its content is written yet.
 
 ## Known residual items (not blockers, tracked here so they're not lost)
 

@@ -1,0 +1,11 @@
+[
+  { "slug": "module-01-containers", "title": "Module 1 — Containers & the app image", "order": 1, "scheduledDate": "2026-07-18", "status": "completed" },
+  { "slug": "module-02-compose", "title": "Module 2 — Local orchestration (Compose)", "order": 2, "scheduledDate": "2026-07-21", "status": "not_started" },
+  { "slug": "module-03-process-management", "title": "Module 3 — Process management", "order": 3, "scheduledDate": "2026-07-25", "status": "not_started" },
+  { "slug": "module-04-nginx-tls", "title": "Module 4 — Reverse proxy & TLS", "order": 4, "scheduledDate": "2026-07-28", "status": "not_started" },
+  { "slug": "module-05-ci-design", "title": "Module 5 — CI design", "order": 5, "scheduledDate": "2026-08-04", "status": "not_started" },
+  { "slug": "module-06-supply-chain", "title": "Module 6 — Supply chain integrity", "order": 6, "scheduledDate": "2026-08-08", "status": "not_started" },
+  { "slug": "module-07-image-lifecycle", "title": "Module 7 — Image lifecycle across environments", "order": 7, "scheduledDate": "2026-08-15", "status": "not_started" },
+  { "slug": "module-08-deploys-rollback", "title": "Module 8 — Deploys, receipts, rollback", "order": 8, "scheduledDate": "2026-08-18", "status": "not_started" },
+  { "slug": "module-09-hotfix-backups", "title": "Module 9 — Hotfix lane, backups, retention", "order": 9, "scheduledDate": "2026-08-25", "status": "not_started" }
+]

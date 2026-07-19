@@ -2,10 +2,11 @@
 
 A personal DevOps learning tracker: module content, auto-graded quizzes
 (objective + open-ended via a free LLM API), deadlines, and score
-analytics — built alongside the ERP infra/DevOps curriculum itself.
+analytics — built alongside  infra/DevOps curriculum itself.
 
 ## Stack
 
+- **Runtime:** Node.js 22+ (required — `@supabase/supabase-js`'s Realtime client needs native WebSocket support, which Node only has from v22 onward; CI, local dev, and Vercel all need to agree on this)
 - **Frontend:** Next.js 14 (App Router), plain JavaScript/JSX, Tailwind CSS
 - **Hosting:** Vercel (free tier, deploys on push via git integration)
 - **Backend:** Supabase (Postgres + Auth, free tier)
@@ -58,9 +59,9 @@ No custom deploy pipeline needed for the frontend itself — Vercel already does
 
 ## Adding a new module
 
-1. Add `content/modules/module-0N-slug.md` with frontmatter (`slug`, `title`, `order`).
-2. Add `content/quizzes/module-0N-quiz.json` with `moduleSlug` matching the module's slug.
-3. Add an entry to the `SCHEDULE` map in `scripts/seed-content.js` with the session date.
+1. Add an entry to `content/curriculum.json` with the module's `slug`, `title`, `order`, `scheduledDate`, and `status: "not_started"` — do this as soon as the week is on the roadmap, even before content is written, so it shows up as a locked placeholder in the pipeline.
+2. When you're ready to teach it: add `content/modules/module-0N-slug.md` (frontmatter `slug`/`title`/`order` becomes authoritative over the manifest's placeholder values) and `content/quizzes/module-0N-quiz.json`.
+3. Update that module's `status` in `content/curriculum.json` to `"in_progress"` or `"completed"` once the session actually happens.
 4. Push. CI seeds it automatically.
 
 ## Auth
