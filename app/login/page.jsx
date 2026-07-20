@@ -47,7 +47,7 @@ export default function LoginPage() {
         <p className="font-mono text-xs text-accent mb-2">infra-console</p>
         <h1 className="text-xl font-semibold mb-1">Sign in</h1>
         <p className="text-sm text-textMuted mb-6">
-          Enter your email. We'll send a sign-in link .
+          {"Enter your email. We'll send a sign-in link ."}
         </p>
 
         {status === "sent" ? (
