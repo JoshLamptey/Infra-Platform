@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Workflow, LogOut } from "lucide-react";
+import { Workflow, LogOut, Route, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AppHeader() {
@@ -16,38 +16,41 @@ export default function AppHeader() {
     router.refresh();
   }
 
-  function NavLink({ href, label }) {
+  function NavLink({ href, label, Icon }) {
     const isActive = pathname === href;
     return (
       <Link
         href={href}
-        className={`text-sm font-mono transition-colors ${
+        className={`flex items-center gap-1.5 text-sm font-mono transition-colors ${
           isActive ? "text-accent" : "text-textMuted hover:text-text"
         }`}
       >
-        {label}
+        <Icon size={15} strokeWidth={2} aria-hidden="true" />
+        {/* Text hides below sm (640px) — icons alone are enough to stay
+            usable on a phone width without everything crowding together. */}
+        <span className="hidden sm:inline">{label}</span>
       </Link>
     );
   }
 
   return (
     <header className="border-b border-border">
-      <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Workflow size={18} strokeWidth={2} className="text-accent" aria-hidden="true" />
-          <span className="font-mono text-sm text-text">infra-console</span>
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
+        <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0">
+          <Workflow size={18} strokeWidth={2} className="text-accent shrink-0" aria-hidden="true" />
+          <span className="font-mono text-sm text-text truncate">infra-console</span>
         </Link>
 
-        <nav className="flex items-center gap-5" aria-label="Main">
-          <NavLink href="/" label="pipeline" />
-          <NavLink href="/analytics" label="analytics" />
+        <nav className="flex items-center gap-3 sm:gap-5 shrink-0" aria-label="Main">
+          <NavLink href="/" label="pipeline" Icon={Route} />
+          <NavLink href="/analytics" label="analytics" Icon={BarChart3} />
           <button
             type="button"
             onClick={handleSignOut}
             className="flex items-center gap-1.5 text-sm font-mono text-textMuted hover:text-danger transition-colors"
           >
-            <LogOut size={14} strokeWidth={2} aria-hidden="true" />
-            sign out
+            <LogOut size={15} strokeWidth={2} aria-hidden="true" />
+            <span className="hidden sm:inline">sign out</span>
           </button>
         </nav>
       </div>

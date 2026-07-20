@@ -17,7 +17,7 @@ export default async function HomePage() {
     <main className="max-w-2xl mx-auto px-4 py-10">
       <header className="mb-8">
         <h1 className="text-2xl font-semibold">Curriculum pipeline</h1>
-        <p className="text-sm text-textMuted mt-1">Signed in as {user.email}</p>
+        <p className="text-sm text-textMuted mt-1">Welcome {user.email}</p>
       </header>
 
       {modules.length === 0 ? (

@@ -23,7 +23,18 @@ export default function LoginPage() {
 
     if (error) {
       setStatus("error");
-      setErrorMessage(error.message);
+      // Supabase's own gateway sometimes times out at ~10s while the
+      // SMTP send actually completes a moment later in the background
+      // — the email often arrives anyway. Don't show a raw scary error
+      // for that specific case; genuine errors (bad email, real rate
+      // limit) still show their actual message.
+      const looksLikeTimeout =
+        error.status === 504 || /timeout|timed out|fetch/i.test(error.message ?? "");
+      setErrorMessage(
+        looksLikeTimeout
+          ? "That took longer than expected. This sometimes happens — check your inbox over the next minute, the link may still arrive even though this shows an error. If nothing comes through, try again."
+          : error.message
+      );
       return;
     }
 
@@ -36,7 +47,7 @@ export default function LoginPage() {
         <p className="font-mono text-xs text-accent mb-2">infra-console</p>
         <h1 className="text-xl font-semibold mb-1">Sign in</h1>
         <p className="text-sm text-textMuted mb-6">
-          Enter your email. We&apos;ll send a sign-in link — no password to manage.
+          Enter your email. We'll send a sign-in link .
         </p>
 
         {status === "sent" ? (
