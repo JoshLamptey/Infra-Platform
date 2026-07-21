@@ -19,12 +19,12 @@ decided; everything below documents the current (Next.js) build.
 | Layer | Choice | Notes |
 | --- | --- | --- |
 | Frontend | Next.js 14 (App Router), **plain JavaScript/JSX** — no TypeScript | Pinned to `^14.2.35` — earlier 14.x versions carry active CVEs, including a middleware auth-bypass (CVE-2025-29927) directly relevant since this app uses `middleware.js` |
-| Styling | Tailwind CSS, custom token palette (not a UI kit) | Pipeline/status-node visual motif mirrors the ERP repo's own CI gate pattern |
+| Styling | Tailwind CSS, custom token palette (not a UI kit) | Pipeline/status-node visual motif mirrors the learning content own CI gate pattern |
 | Hosting | Vercel (free tier) | Deploys automatically on push via git integration — no custom deploy step in CI |
 | Backend/DB | Supabase (Postgres + Auth), free tier | RLS enabled on all user-owned tables from day one |
 | Auth | Supabase magic-link (email OTP), no passwords | Multi-user-ready: every policy keys off `auth.uid()` |
 | Auto-marking (objective) | Plain equality check, no API call | `lib/grading.js` → `gradeObjective()` |
-| Auto-marking (open-ended) | **Gemini API free tier** (`gemini-2.5-flash`), not Anthropic | Switched from the original plan (Claude) specifically to avoid a paid service. ~1,500 req/day, 1M TPM free, no card required. Caveat: free-tier prompts/responses may be used by Google to improve their models — acceptable for infra-quiz content, worth knowing if grading anything sensitive later |
+| Auto-marking (open-ended) | **Gemini API free tier** (`gemini-3.1-flash-lite`), not Anthropic | Switched from the original plan (Claude) specifically to avoid a paid service. ~1,500 req/day, 1M TPM free, no card required. Caveat: free-tier prompts/responses may be used by Google to improve their models — acceptable for infra-quiz content, worth knowing if grading anything sensitive later |
 | CI | GitHub Actions | Lint → build → (on push to `main` only) seed content into Supabase. Does **not** handle the frontend deploy — Vercel's git integration already does that |
 
 ## Database schema (as-built, differs from v1 plan)
@@ -81,6 +81,7 @@ their content files are added.
 ## Post-launch backlog
 
 - **Make learning content more immersive** (requested, deliberately deferred). Current module pages are plain rendered markdown. Explicitly agreed this is the first post-production push, not a pre-launch blocker — revisit once the app is live and stable.
+- **Admin page** (proposed, not yet scoped). Ideas raised: receive QA checklist results as structured submissions instead of copy-pasted text, so failures can be grouped/analyzed for patterns rather than read linearly; uptime tracking; uploading/editing learning content through a UI instead of pushing to the repo (would be a genuine alternative to the git-as-CMS model described above, not a small addition — worth a real design pass before building, not a quick bolt-on).
 
 ## Resolved issues (kept here as a record, not because they're still open)
 

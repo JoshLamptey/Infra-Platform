@@ -26,11 +26,20 @@ export default async function QuizPage({ params }) {
     .from("submissions")
     .select("*, grades(*)")
     .eq("user_id", user.id)
-    .in("question_id", questionIds);
+    .in("question_id", questionIds)
+    .order("submitted_at", { ascending: true });
 
+  // Multiple attempts can exist per question (retakes/corrections) —
+  // keep every row for history, but the map used to render the quiz
+  // should only ever reflect the MOST RECENT attempt per question.
+  // Ordering ascending + unconditional overwrite in this loop means
+  // the last write for a given question is always its latest attempt.
   const existingSubmissionsByQuestion = {};
+  const attemptCountByQuestion = {};
   for (const submission of submissions ?? []) {
     existingSubmissionsByQuestion[submission.question_id] = submission;
+    attemptCountByQuestion[submission.question_id] =
+      (attemptCountByQuestion[submission.question_id] ?? 0) + 1;
   }
 
   const questions = quiz.questions
@@ -62,6 +71,7 @@ export default async function QuizPage({ params }) {
       <QuizRunner
         quiz={{ ...quiz, questions }}
         existingSubmissionsByQuestion={existingSubmissionsByQuestion}
+        attemptCountByQuestion={attemptCountByQuestion}
       />
     </main>
   );
