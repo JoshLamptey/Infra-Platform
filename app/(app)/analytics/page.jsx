@@ -15,12 +15,22 @@ export default async function AnalyticsPage() {
   const { data: submissions } = await supabase
     .from("submissions")
     .select(
-      "id, submitted_at, grades(score, max_score, graded_by), questions(quiz_id, quizzes(module_id, modules(title, order_index)))"
+      "id, question_id, submitted_at, grades(score, max_score, graded_by), questions(quiz_id, quizzes(module_id, modules(title, order_index)))"
     )
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .order("submitted_at", { ascending: true });
+
+  // Retries create additional rows per question — only the most recent
+  // attempt should count toward the average, or a later correct answer
+  // wouldn't be able to improve the score, and old wrong attempts would
+  // double-count alongside it.
+  const latestByQuestion = new Map();
+  for (const submission of submissions ?? []) {
+    latestByQuestion.set(submission.question_id, submission);
+  }
 
   const byModule = {};
-  for (const submission of submissions ?? []) {
+  for (const submission of latestByQuestion.values()) {
     const moduleInfo = submission.questions?.quizzes?.modules;
     const grade = submission.grades?.[0];
     if (!moduleInfo || !grade) continue;
