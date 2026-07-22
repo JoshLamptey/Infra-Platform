@@ -1,9 +1,38 @@
 import { redirect, notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
 import Link from "next/link";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import rehypePrettyCode from "rehype-pretty-code";
 import { createClient } from "@/lib/supabase/server";
 import { getModule } from "@/lib/content";
 import { getModulesWithStatus } from "@/lib/moduleStatus";
+import Callout from "@/components/mdx/Callout";
+import PipelineStages from "@/components/mdx/PipelineStages";
+
+const mdxComponents = { Callout, PipelineStages };
+
+const mdxOptions = {
+  // next-mdx-remote v6 blocks JS expressions in MDX by default
+  // (blockJS: true) to close CVE-2026-0969 — an RCE risk when MDX
+  // content comes from an untrusted source. Ours never does: every
+  // module's content is a file in this repo, authored by us, reviewed
+  // via git, never accepted as runtime input from a user. blockJS is
+  // set to false here because PipelineStages' `stages={[...]}` prop is
+  // a JS expression and would otherwise be silently stripped.
+  // blockDangerousJS stays at its default (true) as a costless second
+  // layer — it blocks eval/Function/require/process specifically, none
+  // of which any module content has a legitimate reason to reference.
+  blockJS: false,
+  mdxOptions: {
+    remarkPlugins: [remarkGfm], // tables, strikethrough, etc. — without
+    // this, react-markdown/MDX only support bare CommonMark, and the
+    // comparison table further down this file was silently rendering
+    // as broken literal pipe-text, not an actual table.
+    rehypePlugins: [
+      [rehypePrettyCode, { theme: "github-dark-dimmed", keepBackground: false }],
+    ],
+  },
+};
 
 export default async function ModulePage({ params }) {
   const supabase = createClient();
@@ -30,10 +59,6 @@ export default async function ModulePage({ params }) {
     .eq("slug", params.slug)
     .maybeSingle();
 
-  // `quizzes.module_id` is UNIQUE, so Supabase treats modules -> quizzes
-  // as one-to-one and returns a single object here, not an array. This
-  // used to be `moduleRow?.quizzes?.[0]`, which silently evaluated to
-  // undefined and made the quiz card disappear entirely.
   const quiz = moduleRow?.quizzes;
 
   return (
@@ -44,8 +69,19 @@ export default async function ModulePage({ params }) {
 
       <h1 className="text-2xl font-semibold mt-4 mb-6">{moduleContent.title}</h1>
 
-      <article className="prose-invert max-w-none space-y-4 text-[15px] leading-relaxed [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-2 [&_table]:w-full [&_table]:text-sm [&_th]:text-left [&_th]:border-b [&_th]:border-border [&_th]:py-1.5 [&_td]:border-b [&_td]:border-border [&_td]:py-1.5 [&_code]:font-mono [&_code]:text-accent">
-        <ReactMarkdown>{moduleContent.body}</ReactMarkdown>
+      <article
+        className="prose-invert max-w-none space-y-4 text-[15px] leading-relaxed
+          [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-2
+          [&_table]:w-full [&_table]:text-sm
+          [&_th]:text-left [&_th]:border-b [&_th]:border-border [&_th]:py-1.5
+          [&_td]:border-b [&_td]:border-border [&_td]:py-1.5
+          [&_:not(pre)>code]:font-mono [&_:not(pre)>code]:text-accent
+          [&_:not(pre)>code]:bg-surfaceRaised [&_:not(pre)>code]:px-1.5
+          [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:text-[13px]
+          [&_pre]:bg-surface [&_pre]:border [&_pre]:border-border [&_pre]:rounded-md
+          [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:my-4 [&_pre]:text-[13px] [&_pre]:leading-relaxed"
+      >
+        <MDXRemote source={moduleContent.body} components={mdxComponents} options={mdxOptions} />
       </article>
 
       {quiz && (
