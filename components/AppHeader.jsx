@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Workflow, LogOut, Route, BarChart3 } from "lucide-react";
+import { Workflow, LogOut, Route, BarChart3, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function AppHeader() {
+export default function AppHeader({ isAdmin = false }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -44,6 +44,7 @@ export default function AppHeader() {
         <nav className="flex items-center gap-3 sm:gap-5 shrink-0" aria-label="Main">
           <NavLink href="/" label="pipeline" Icon={Route} />
           <NavLink href="/analytics" label="analytics" Icon={BarChart3} />
+          {isAdmin && <NavLink href="/admin" label="admin" Icon={ShieldCheck} />}
           <button
             type="button"
             onClick={handleSignOut}
