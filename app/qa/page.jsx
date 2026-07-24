@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { QA_TESTS } from "@/lib/qaTests";
+import { parseUserAgent } from "@/lib/parseUserAgent";
 
 const STORAGE_KEY = "infra-console-qa-draft-v1";
 
@@ -17,10 +18,19 @@ export default function QaPage() {
         const saved = JSON.parse(raw);
         setMeta(saved.meta ?? meta);
         setResults(saved.results ?? {});
+        // A saved draft already has (or deliberately lacks) a device
+        // value — don't override it.
+        if (saved.meta?.device) return;
       }
     } catch {
       // fresh start if the saved draft is corrupted
     }
+
+    // No existing draft, or one with no device set yet — prefill from
+    // the browser. Still just a starting point: the field stays
+    // editable, since the UA string can't tell us e.g. "iPhone 13".
+    const detected = parseUserAgent(window.navigator.userAgent);
+    if (detected) setMeta((m) => ({ ...m, device: detected }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
