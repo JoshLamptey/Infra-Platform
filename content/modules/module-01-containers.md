@@ -25,21 +25,16 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-index --find-links=/wheels -r requirements.txt
 ```
 
-<Callout variant="why">
-`runtime` never runs `pip install` against the internet — it only installs
-from the local `/wheels` folder built by `builder`. That's what makes the
-install reproducible: nothing here can silently pull a different package
-version than what `builder` already resolved.
-</Callout>
+> Why:
+> `runtime` never runs `pip install` against the internet — it only installs
+> from the local `/wheels` folder built by `builder`. That's what makes the
+> install reproducible: nothing here can silently pull a different package
+> version than what `builder` already resolved.
 
 ## Stage walkthrough (`infra/docker/backend/Dockerfile`)
 
-<PipelineStages stages={[
-  { name: "base", kept: true, note: "shared env flags" },
-  { name: "builder", kept: false, note: "compiler + full wheel build" },
-  { name: "runtime", kept: true, note: "shared foundation" },
-  { name: "production", kept: true, note: "what actually ships" },
-]} />
+Stage status: `base` kept, `builder` discarded, `runtime` kept, `production`
+kept.
 
 - **`base`** — shared Python environment flags.
 - **`builder`** — installs a full compiler toolchain and builds wheels
@@ -64,11 +59,9 @@ version than what `builder` already resolved.
 | One image, multiple `CMD`s per stage/script | Web/worker/beat can't drift out of sync |
 | No image-level `HEALTHCHECK` | Health semantics differ per service |
 
-<Callout variant="warning">
-Only `builder` is fully discarded. `base` and `runtime` are genuine
-ancestors of `production` via the `FROM` chain — their layers persist
-into what ships. The thing that makes the final image small isn't that
-"most stages get thrown away" — it's that the *one* stage with a compiler
-toolchain in it specifically never becomes an ancestor of anything that
-ships.
-</Callout>
+> Warning: Only `builder` is fully discarded. `base` and `runtime` are genuine
+> ancestors of `production` via the `FROM` chain — their layers persist
+> into what ships. The thing that makes the final image small isn't that
+> "most stages get thrown away" — it's that the *one* stage with a compiler
+> toolchain in it specifically never becomes an ancestor of anything that
+> ships.
