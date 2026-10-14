@@ -1,0 +1,49 @@
+{
+  "slug": "module-02-quiz",
+  "moduleSlug": "module-02-compose",
+  "title": "Module 2 Quiz — Local orchestration (Compose)",
+  "questions": [
+    {
+      "id": "m2q1",
+      "type": "open",
+      "prompt": "Two parts. (a) Compare image: ${POSTGRES_IMAGE:?load infra/pins.env} with mem_limit: ${REDIS_MEM_LIMIT:-256m}. What does each form do when its variable is unset, and why is it sensible that images use one form and tuning knobs use the other? (b) What is the difference between the --env-file flag on the docker compose command and the env_file: key inside a service?",
+      "rubric": "Part (a): the :? form stops with an error (carrying the message) when the variable is unset or empty; the :- form silently substitutes the default. Images use :? because a missing pin must fail loudly at render time, since a silent fallback could let an unpinned image into the stack and defeat the digest pinning; memory limits have a sensible default so a default is acceptable. Part (b): --env-file supplies values for ${...} interpolation while Compose reads the YAML (host side, before containers exist); env_file: inside a service injects variables into that container's runtime environment. Full credit needs both parts; award roughly half for each part.",
+      "maxScore": 10
+    },
+    {
+      "id": "m2q2",
+      "type": "open",
+      "prompt": "The api service uses depends_on with condition: service_healthy for db, but nginx uses condition: service_started for api. Explain what goes wrong if api used the short form depends_on: [db] instead, and give a plausible reason nginx is allowed to use the weaker condition.",
+      "rubric": "The short form only waits until the db container has started, not until Postgres accepts connections; Postgres starts well before it is ready (longer on first boot), so api or migrate would race the database and fail intermittently. condition: service_healthy waits for the pg_isready healthcheck to pass. For nginx, a reasonable justification: it only needs the api container to exist on the network so the hostname resolves, and it can tolerate api still warming up (serving errors briefly) rather than failing to start. Accept any defensible reasoning for the nginx half; the first half must be correct for full marks.",
+      "maxScore": 10
+    },
+    {
+      "id": "m2q3",
+      "type": "open",
+      "prompt": "In dev.yml the database publishes \"127.0.0.1:5439:5432\". In staging.yml and prod.yml the database publishes no ports at all, and api uses expose instead of ports. Explain who can reach the database in each case, what expose actually does, and why the staging/prod approach is safer.",
+      "rubric": "Dev: the loopback binding makes the database reachable only from the host machine itself, not from other machines on the network (and 5439 avoids clashing with a local Postgres on 5432). Staging/prod: nothing is published to the host, so the database is reachable only by other containers on the Compose network. expose documents a port for other containers and publishes nothing to the host; it is documentation rather than a firewall, since containers on the same network can reach each other's listening ports anyway. Safer because the only entry point is nginx (80/443), so even a misconfigured host firewall cannot expose the database; this is also enforced in CI by verify_infra_policy.py.",
+      "maxScore": 10
+    },
+    {
+      "id": "m2q4",
+      "type": "open",
+      "prompt": "The migrate service has profiles: [\"migrate\"] and is run with docker compose run --rm migrate. What would change if the profile line were deleted and someone ran docker compose up -d? Why is the profile-plus-run pattern the right fit for deploy.sh specifically?",
+      "rubric": "Without the profile, up would start migrate together with every other service, on every up: it would run as part of normal startup rather than at a controlled point, potentially racing or running while the app containers start, and it is a one-shot task rather than a long-running service so it would exit and sit as a stopped container. With the profile, up skips it, and it only runs when explicitly invoked via run --rm (which auto-activates it, honours depends_on, and removes the container afterwards). deploy.sh needs migration to be an ordered gate: bring up db and redis, run migrate and wait for success, run collectstatic, and only then start api/worker/beat/nginx, so a failed migration stops the deploy before the new app version serves traffic.",
+      "maxScore": 10
+    },
+    {
+      "id": "m2q5",
+      "type": "open",
+      "prompt": "Open infra/compose/prod.yml and look at the redis service. Compare the default value of REDIS_MAXMEMORY (passed as --maxmemory, with policy noeviction and appendonly enabled) against the default value of REDIS_MEM_LIMIT (the container's mem_limit). Using only the defaults written in the file, what could go wrong, and what would you change? How would you check what the values actually are on the server?",
+      "rubric": "The default maxmemory (512mb) is larger than the container's mem_limit (256m). Redis believes it may use up to 512 MB, but the kernel kills the container at 256 MB (an OOM kill), so Redis never reaches its own limit and instead gets killed, and with restart: always it can restart-loop; noeviction means Redis will not free memory by itself, and AOF rewrites fork the process and need extra headroom. Fix: make maxmemory comfortably lower than mem_limit (leaving headroom for fork/copy-on-write, buffers and overhead) or raise mem_limit above maxmemory, so the two settings agree. Good answers also note that the defaults may be overridden by the env file and that docker compose config shows the effective resolved values (or docker inspect / redis-cli CONFIG GET maxmemory on the running container). Credit the key insight (limit smaller than the app's own ceiling) most heavily.",
+      "maxScore": 10
+    },
+    {
+      "id": "m2q6",
+      "type": "open",
+      "prompt": "Explain the practical difference between running dev.yml and running dev-image.yml, and explain why verify_infra_policy.py forbids a build: key in staging.yml and prod.yml but requires one on the api service in dev.yml.",
+      "rubric": "dev.yml builds the image from local source and bind-mounts the working tree, running Django runserver with live reload: it tests the code being written. dev-image.yml runs a prebuilt image via APP_IMAGE with no source mounted and the image's own production start command (Daphne via start-api.sh) and healthchecks: it tests the exact artifact that will ship. Non-dev compose files must not build because a server that builds its own image would deploy something CI never built, scanned, or tested; staging and prod must only pull the immutable, digest-pinned image that already passed the pipeline (build once, promote the same artifact). In dev, api must build because it is the one service that produces the image the others (migrate, worker, beat, collectstatic) reuse by tag.",
+      "maxScore": 10
+    }
+  ]
+}
