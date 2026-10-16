@@ -59,16 +59,12 @@ as a child. Follow the chain for a worker container:
 
 Three programs, one process. By the end, Celery *is* PID 1.
 
-<!-- markdownlint-disable MD033 -->
-<Callout variant="why">
-`docker stop` sends SIGTERM to PID 1 and nothing else. If the script had
-launched Celery as a child without `exec`, the shell would be PID 1, would
-not pass the signal on, and Docker would wait out its grace period (10
-seconds by default) and then send SIGKILL. Graceful shutdown would never
-happen. With `exec`, the server itself receives the signal and can shut down
-cleanly.
-</Callout>
-<!-- markdownlint-enable MD033 -->
+- **Why `exec` matters:** `docker stop` sends SIGTERM to PID 1 and nothing else.
+  If the script had launched Celery as a child without `exec`, the shell would
+  be PID 1, would not pass the signal on, and Docker would wait out its grace
+  period (10 seconds by default) and then send SIGKILL. Graceful shutdown would
+  never happen. With `exec`, the server itself receives the signal and can shut
+  down cleanly.
 
 Two further consequences, one of them in the repo already:
 
